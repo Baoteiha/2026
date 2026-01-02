@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>For Hie - Happy New Year Love</title>
+  <style>
+    :root{
+      --warm-cream:#fff6e9;
+      --warm-peach:#ffd7b3;
+      --warm-pink:#ffb3c8;
+      --warm-yellow:#ffe08a;
+      --warm-coral:#ff8f7a;
+      --warm-brown:#4a2c2a;
+      --paper:#fffdf9;
+      --shadow: 0 18px 50px rgba(0,0,0,0.18);
+      --shadow-soft: 0 10px 26px rgba(0,0,0,0.14);
+    }
+
+    /* WebGL scene page */
+    body { margin: 0; overflow: hidden; background: #0a0806; cursor: grab; }
+    body:active { cursor: grabbing; }
+
+    /* ---------- Transition overlay ---------- */
+    .fade {
+      position: fixed; inset: 0;
+      background: #0a0806;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 650ms ease;
+      z-index: 30;
+    }
+    .fade.on { opacity: 1; pointer-events: auto; }
+
+    /* ---------- Vision Board Page ---------- */
+    .vision {
+      position: fixed; inset: 0;
+      display: none;
+      z-index: 40;
+      overflow: hidden; /* keep page still */
+      color: var(--warm-brown);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+    }
+    .vision.show { display: block; }
+
+    /* Warm playful background */
+    .vision::before{
+      content:"";
+      position:absolute; inset:-40px;
+      background:
+        radial-gradient( 900px 600px at 10% 10%, rgba(255,224,138,0.95), rgba(255,224,138,0) 60%),
+        radial-gradient( 800px 520px at 90% 20%, rgba(255,179,200,0.90), rgba(255,179,200,0) 60%),
+        radial-gradient( 900px 620px at 35% 95%, rgba(255,143,122,0.55), rgba(255,143,122,0) 60%),
+        radial-gradient( 700px 520px at 85% 85%, rgba(255,215,179,0.85), rgba(255,215,179,0) 60%),
+        linear-gradient(135deg, var(--warm-cream), #fff3f7 35%, #fff9e6 70%, #fff6e9);
+      filter: saturate(1.05);
+    }
+
+    /* Subtle doodle pattern */
+    .vision::after{
+      content:"";
+      position:absolute; inset:0;
+      background-image:
+        radial-gradient(rgba(74,44,42,0.06) 1px, transparent 1px),
+        radial-gradient(rgba(74,44,42,0.04) 1px, transparent 1px);
+      background-size: 22px 22px, 34px 34px;
+      background-position: 0 0, 10px 14px;
+      mix-blend-mode: multiply;
+      opacity: 0.6;
+      pointer-events:none;
+    }
+
+    /* Better padding (page still) */
+    .visionWrap{
+      position: relative;
+      height: 100%;
+      padding: clamp(18px, 3vw, 34px);
+      padding-bottom: clamp(72px, 10vh, 140px);
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      gap: clamp(14px, 2vw, 20px);
+      box-sizing: border-box;
+    }
+
+    .topBar{
+      display:flex;
+      align-items:flex-end;
+      justify-content:space-between;
+      gap: 14px;
+      position: relative;
+      z-index: 2;
+    }
+    .titleBlock{ max-width: 860px; }
+    .title{
+      margin: 0;
+      font-size: clamp(26px, 3.6vw, 44px);
+      letter-spacing: -0.02em;
+      line-height: 1.05;
+      user-select: none;
+    }
+    .subtitle{
+      margin: 8px 0 0;
+      font-size: clamp(13px, 1.35vw, 16px);
+      opacity: 0.85;
+      line-height: 1.4;
+    }
+
+    .btnRow{
+      display:flex;
+      gap: 10px;
+      align-items:center;
+      justify-content:flex-end;
+      flex-wrap: wrap;
+    }
+    .btn{
+      border: 0;
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.75);
+      backdrop-filter: blur(8px);
+      box-shadow: 0 10px 24px rgba(0,0,0,0.12);
+      color: var(--warm-brown);
+      font-weight: 650;
+      cursor: pointer;
+      transition: transform 150ms ease, background 150ms ease;
+      user-select: none;
+    }
+    .btn:hover{ transform: translateY(-1px); background: rgba(255,255,255,0.9); }
+    .btn:active{ transform: translateY(0px); }
+
+    /* Board */
+    .board{
+      position: relative;
+      z-index: 2;
+      display:grid;
+      grid-template-columns: 1.25fr 0.95fr 1.05fr;
+      grid-template-rows: 0.92fr 1.08fr;
+      gap: clamp(12px, 1.6vw, 18px);
+      align-items: stretch;
+      min-height: 0;
+    }
+
+    .card{
+      background: rgba(255,255,255,0.72);
+      backdrop-filter: blur(8px);
+      border: 1px solid rgba(74,44,42,0.10);
+      border-radius: 22px;
+      box-shadow: var(--shadow-soft);
+      overflow: hidden;
+      position: relative;
+      min-height: 0;
+    }
+    .paper{
+      background: linear-gradient(180deg, rgba(255,253,249,0.92), rgba(255,253,249,0.70));
+      border: 1px solid rgba(74,44,42,0.10);
+      box-shadow: var(--shadow);
+    }
+
+    .cardHeader{
+      padding: 16px 18px 10px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 10px;
+    }
+    .cardTitle{
+      margin: 0;
+      font-size: 16px;
+      letter-spacing: 0.01em;
+    }
+    .tag{
+      font-size: 12px;
+      font-weight: 650;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: rgba(255,224,138,0.55);
+      border: 1px solid rgba(74,44,42,0.10);
+      white-space: nowrap;
+    }
+
+    .content{
+      padding: 0 18px 18px;
+      line-height: 1.45;
+      font-size: 14px;
+      opacity: 0.92;
+    }
+
+    /* Editable areas */
+    [contenteditable="true"]{
+      outline: none;
+      border-radius: 10px;
+      padding: 6px 8px;
+      margin: -6px -8px;
+      transition: background 120ms ease, box-shadow 120ms ease;
+      cursor: text;
+    }
+    [contenteditable="true"]:hover{ background: rgba(255,255,255,0.35); }
+    [contenteditable="true"]:focus{
+      background: rgba(255,255,255,0.70);
+      box-shadow: 0 0 0 3px rgba(255,179,200,0.55);
+    }
+
+    .list{ margin: 10px 0 0; padding-left: 18px; }
+    .list li{ margin: 6px 0; }
+
+    /* Big quote */
+    .bigQuote{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding: 22px;
+      text-align:center;
+      font-size: clamp(18px, 2.2vw, 26px);
+      font-weight: 750;
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+      position: relative;
+    }
+    .bigQuote span{ display:inline-block; max-width: 680px; }
+    .bigQuote .sub{
+      display:block;
+      margin-top: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      opacity: 0.75;
+      letter-spacing: 0.01em;
+    }
+
+    /* Footer hint */
+    .footerHint{
+      position: relative;
+      z-index: 2;
+      opacity: 0.8;
+      font-size: 12.5px;
+      display:flex;
+      justify-content:space-between;
+      gap: 14px;
+      flex-wrap: wrap;
+      padding-bottom: 6px;
+    }
+
+    /* --- Mood & Aesthetic: Upload + scrollable image strip --- */
+    .moodCardBody{
+      padding: 0 14px 14px;
+      height: 100%;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      gap: 12px;
+      min-height: 0;
+    }
+
+    .uploadRow{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 10px;
+      padding: 0 4px;
+    }
+
+    .fileBtn{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      gap: 8px;
+      padding: 10px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(74,44,42,0.12);
+      background: rgba(255,255,255,0.78);
+      cursor: pointer;
+      font-weight: 650;
+      box-shadow: 0 10px 22px rgba(0,0,0,0.10);
+      user-select: none;
+      transition: transform 150ms ease, background 150ms ease;
+      white-space: nowrap;
+    }
+    .fileBtn:hover{ transform: translateY(-1px); background: rgba(255,255,255,0.92); }
+    .fileBtn:active{ transform: translateY(0); }
+
+    .tinyHint{
+      font-size: 12px;
+      opacity: 0.75;
+      line-height: 1.3;
+    }
+
+    .moodScroller{
+      border-radius: 18px;
+      border: 1px solid rgba(74,44,42,0.10);
+      background: rgba(255,255,255,0.55);
+      box-shadow: 0 14px 30px rgba(0,0,0,0.10);
+      overflow: auto;      /* scroll inside this section */
+      padding: 12px;
+      min-height: 0;
+    }
+
+    .moodGrid{
+      display:grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      align-items: start;
+    }
+
+    /* ✅ Remove fixed aspect ratio so tiles match image height */
+    .moodItem{
+      position: relative;
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid rgba(74,44,42,0.10);
+      background: linear-gradient(135deg, rgba(255,224,138,0.30), rgba(255,179,200,0.20));
+    }
+
+    /* ✅ No cropping: show entire image */
+    .moodItem img{
+      width: 100%;
+      height: auto;      /* matches image height */
+      object-fit: contain;
+      display: block;
+      background: rgba(255,255,255,0.35);
+    }
+
+    .removeBtn{
+      position:absolute;
+      top: 10px; right: 10px;
+      border: 0;
+      width: 32px; height: 32px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.85);
+      border: 1px solid rgba(74,44,42,0.14);
+      cursor: pointer;
+      font-weight: 900;
+      color: var(--warm-brown);
+      box-shadow: 0 10px 22px rgba(0,0,0,0.12);
+      transition: transform 120ms ease, background 120ms ease;
+      user-select:none;
+    }
+    .removeBtn:hover{ transform: translateY(-1px); background: rgba(255,255,255,0.95); }
+    .removeBtn:active{ transform: translateY(0); }
+
+    @media (max-width: 980px){
+      .board{ grid-template-columns: 1fr; grid-template-rows: auto; }
+      .moodGrid{ grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 520px){
+      .moodGrid{ grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="fade" id="fade"></div>
+
+<!-- Vision Board Page -->
+<section class="vision" id="vision">
+  <div class="visionWrap">
+    <div class="topBar">
+      <div class="titleBlock">
+        <h1 class="title">Vision Board 2026</h1>
+        <p class="subtitle" contenteditable="true" spellcheck="false">
+          Click the text to edit. Upload images in Mood & Aesthetic.
+        </p>
+      </div>
+      <div class="btnRow">
+        <button class="btn" id="backBtn" type="button">Back to Portal</button>
+        <button class="btn" id="printBtn" type="button">Print</button>
+      </div>
+    </div>
+
+    <div class="board">
+      <!-- Intentions -->
+      <div class="card paper">
+        <div class="cardHeader">
+          <h3 class="cardTitle" contenteditable="true" spellcheck="false">Intentions</h3>
+          <div class="tag" contenteditable="true" spellcheck="false">Focus</div>
+        </div>
+        <div class="content">
+          <ul class="list" contenteditable="true" spellcheck="false">
+            <li>Choose clarity over chaos.</li>
+            <li>Build momentum with small daily wins.</li>
+            <li>Be present with people I love.</li>
+            <li>Create work I’m proud to share.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Big quote -->
+      <div class="card paper bigQuote">
+        <span>
+          <span contenteditable="true" spellcheck="false">“Warm heart, clear mind, steady steps.”</span>
+          <span class="sub" contenteditable="true" spellcheck="false">My energy for 2026</span>
+        </span>
+      </div>
+
+      <!-- Habits -->
+      <div class="card paper">
+        <div class="cardHeader">
+          <h3 class="cardTitle" contenteditable="true" spellcheck="false">Habits</h3>
+          <div class="tag" contenteditable="true" spellcheck="false" style="background: rgba(255,179,200,0.55);">Daily</div>
+        </div>
+        <div class="content">
+          <ul class="list" contenteditable="true" spellcheck="false">
+            <li>30 minutes deep work before scrolling.</li>
+            <li>Move my body (walk, swim, stretch).</li>
+            <li>One meaningful check-in with someone.</li>
+            <li>Write 3 lines of gratitude.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Mood & Aesthetic (UPLOAD + SCROLL + NO CROP) -->
+      <div class="card" style="grid-column: 1 / span 2;">
+        <div class="cardHeader" style="padding-bottom: 6px;">
+          <h3 class="cardTitle" contenteditable="true" spellcheck="false">Mood & Aesthetic</h3>
+          <div class="tag" contenteditable="true" spellcheck="false" style="background: rgba(255,215,179,0.7);">Playful + Warm</div>
+        </div>
+
+        <div class="moodCardBody">
+          <div class="uploadRow">
+            <label class="fileBtn" for="moodUpload">Upload images</label>
+            <div class="tinyHint" contenteditable="true" spellcheck="false">
+              No crop: images keep their full height. This panel scrolls.
+            </div>
+            <input id="moodUpload" type="file" accept="image/*" multiple hidden />
+          </div>
+
+          <div class="moodScroller" id="moodScroller">
+            <div class="moodGrid" id="moodGrid">
+              <!-- Starter placeholders -->
+              <div class="moodItem">
+                <img alt="placeholder" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='600'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop stop-color='%23FFE08A'/%3E%3Cstop offset='1' stop-color='%23FFB3C8'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23g)'/%3E%3Ctext x='50%25' y='50%25' font-size='42' font-family='Arial' fill='%234A2C2A' text-anchor='middle'%3EAdd your images%3C/text%3E%3C/svg%3E" />
+                <button class="removeBtn" title="Remove" aria-label="Remove" type="button">×</button>
+              </div>
+              <div class="moodItem">
+                <img alt="placeholder" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='600'%3E%3Cdefs%3E%3ClinearGradient id='g2' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop stop-color='%23FFD7B3'/%3E%3Cstop offset='1' stop-color='%23FF8F7A'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23g2)'/%3E%3Ctext x='50%25' y='50%25' font-size='38' font-family='Arial' fill='%234A2C2A' text-anchor='middle'%3EVibes%3C/text%3E%3C/svg%3E" />
+                <button class="removeBtn" title="Remove" aria-label="Remove" type="button">×</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Goals -->
+      <div class="card paper">
+        <div class="cardHeader">
+          <h3 class="cardTitle" contenteditable="true" spellcheck="false">Goals</h3>
+          <div class="tag" contenteditable="true" spellcheck="false" style="background: rgba(255,143,122,0.45);">Milestones</div>
+        </div>
+        <div class="content">
+          <ul class="list" contenteditable="true" spellcheck="false">
+            <li>One project shipped that I truly care about.</li>
+            <li>Stronger health routine (sleep, movement, meals).</li>
+            <li>More time outdoors + mini trips.</li>
+            <li>Save and invest consistently.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- People -->
+      <div class="card paper">
+        <div class="cardHeader">
+          <h3 class="cardTitle" contenteditable="true" spellcheck="false">People & Places</h3>
+          <div class="tag" contenteditable="true" spellcheck="false" style="background: rgba(255,224,138,0.45);">Connection</div>
+        </div>
+        <div class="content">
+          <ul class="list" contenteditable="true" spellcheck="false">
+            <li>Make space for friendships that feel easy.</li>
+            <li>Plan 2–3 meaningful catch-ups each month.</li>
+            <li>Create a home vibe that feels calm and warm.</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="footerHint">
+      <div contenteditable="true" spellcheck="false">
+        Tip: click text to edit. Mood images show fully (no cropping).
+      </div>
+      <div>Portal is clickable after you “explode” into 2026.</div>
+    </div>
+  </div>
+</section>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+  import * as THREE from 'three';
+  import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+  import { FontLoader } from 'three/addons/loaders/FontLoader.js';
+  import { TextGeometry } from 'three/addons/geometries/TextGeometry.js';
+  import { MeshSurfaceSampler } from 'three/addons/math/MeshSurfaceSampler.js';
+  import gsap from 'https://cdn.skypack.dev/gsap';
+
+  const totalImages = 12;
+  const totalParticles = 6000;
+  const quotesList = ["Happy New Year", "I love you", "I miss you"];
+  let isExploded = false;
+  let inVisionBoard = false;
+
+  const fadeEl = document.getElementById('fade');
+  const visionEl = document.getElementById('vision');
+  const backBtn = document.getElementById('backBtn');
+  const printBtn = document.getElementById('printBtn');
+
+  // ---- Mood upload logic ----
+  const moodUpload = document.getElementById('moodUpload');
+  const moodGrid = document.getElementById('moodGrid');
+
+  function attachRemoveHandler(btn){
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const item = btn.closest('.moodItem');
+      if (item) item.remove();
+    });
+  }
+  moodGrid.querySelectorAll('.removeBtn').forEach(attachRemoveHandler);
+
+  moodUpload.addEventListener('change', () => {
+    const files = Array.from(moodUpload.files || []);
+    if (!files.length) return;
+
+    files.forEach((file) => {
+      if (!file.type.startsWith('image/')) return;
+
+      const url = URL.createObjectURL(file);
+
+      const item = document.createElement('div');
+      item.className = 'moodItem';
+
+      const img = document.createElement('img');
+      img.src = url;
+      img.alt = file.name;
+
+      const remove = document.createElement('button');
+      remove.className = 'removeBtn';
+      remove.type = 'button';
+      remove.title = 'Remove';
+      remove.setAttribute('aria-label', 'Remove');
+      remove.textContent = '×';
+      attachRemoveHandler(remove);
+
+      item.appendChild(img);
+      item.appendChild(remove);
+      moodGrid.appendChild(item);
+    });
+
+    moodUpload.value = '';
+  });
+
+  // --- 3D Scene ---
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 1000);
+  camera.position.set(0, 5, 50);
+
+  const renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 2.2;
+  document.body.appendChild(renderer.domElement);
+
+  const controls = new OrbitControls(camera, renderer.domElement);
+  controls.enableDamping = true;
+  controls.autoRotate = true;
+
+  scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+
+  // Portal group
+  const portalGroup = new THREE.Group();
+  portalGroup.position.set(0, -25, 0);
+  portalGroup.visible = false;
+  scene.add(portalGroup);
+
+  const PORTAL_RADIUS = 18;
+
+  const portalFloor = new THREE.Mesh(
+    new THREE.CircleGeometry(PORTAL_RADIUS, 64),
+    new THREE.MeshStandardMaterial({
+      color: '#ffd54f',
+      emissive: '#ff9100',
+      emissiveIntensity: 2,
+      transparent: true,
+      opacity: 0.6
+    })
+  );
+  portalFloor.rotation.x = -Math.PI / 2;
+  portalGroup.add(portalFloor);
+
+  const ring = new THREE.Mesh(
+    new THREE.TorusGeometry(PORTAL_RADIUS, 0.25, 16, 100),
+    new THREE.MeshStandardMaterial({
+      color: '#ffffff',
+      emissive: '#ffd54f',
+      emissiveIntensity: 5
+    })
+  );
+  ring.rotation.x = -Math.PI / 2;
+  portalGroup.add(ring);
+
+  // Particles
+  const glowMat = new THREE.MeshStandardMaterial({
+    metalness: 1.0,
+    roughness: 0.1,
+    emissive: '#ffb300',
+    emissiveIntensity: 0.8
+  });
+
+  const sphereMesh = new THREE.InstancedMesh(new THREE.SphereGeometry(0.12, 8, 8), glowMat, totalParticles / 2);
+  const cubeMesh = new THREE.InstancedMesh(new THREE.BoxGeometry(0.15, 0.15, 0.15), glowMat, totalParticles / 2);
+  scene.add(sphereMesh, cubeMesh);
+
+  const figurePos = [];
+  const spherePos = [];
+  const dummy = new THREE.Object3D();
+
+  const loader = new FontLoader();
+  loader.load('https://unpkg.com/three@0.160.0/examples/fonts/gentilis_regular.typeface.json', (font) => {
+    const textGeo = new TextGeometry('2025', { font, size: 10, height: 2 });
+    textGeo.center();
+
+    const sampler = new MeshSurfaceSampler(new THREE.Mesh(textGeo)).build();
+    const tempV = new THREE.Vector3();
+
+    for (let i = 0; i < totalParticles; i++) {
+      sampler.sample(tempV);
+      figurePos.push(new THREE.Vector3().copy(tempV));
+
+      const r = 35 + Math.random() * 10;
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.acos((Math.random() * 2) - 1);
+
+      spherePos.push(new THREE.Vector3(
+        r * Math.sin(phi) * Math.cos(theta),
+        r * Math.sin(phi) * Math.sin(theta),
+        r * Math.cos(phi)
+      ));
+    }
+
+    updatePositions(figurePos);
+
+    // Portal label
+    const portalLabelGeo = new TextGeometry('Welcome to 2026', { font, size: 3.0, height: 0.6 });
+    portalLabelGeo.center();
+    const portalLabelMesh = new THREE.Mesh(
+      portalLabelGeo,
+      new THREE.MeshStandardMaterial({ color: '#ffffff', emissive: '#fff176', emissiveIntensity: 5 })
+    );
+    portalLabelMesh.rotation.x = -Math.PI / 2;
+    portalLabelMesh.position.set(0, 0.25, 0);
+    portalGroup.add(portalLabelMesh);
+
+    // Quotes
+    quotesList.forEach((text) => {
+      const qGeo = new TextGeometry(text, { font, size: 2, height: 0.2 });
+      qGeo.center();
+      const qMesh = new THREE.Mesh(
+        qGeo,
+        new THREE.MeshStandardMaterial({ color: '#ffffff', emissive: '#ffd54f', emissiveIntensity: 3 })
+      );
+      qMesh.userData = { offset: Math.random() * 10, speed: 0.5, radius: 15 + Math.random() * 20 };
+      qMesh.visible = false;
+      portalGroup.add(qMesh);
+    });
+  });
+
+  // Gallery
+  const galleryGroup = new THREE.Group();
+  galleryGroup.visible = false;
+  scene.add(galleryGroup);
+
+  const texLoader = new THREE.TextureLoader();
+  for (let i = 1; i <= totalImages; i++) {
+    const angle = ((i - 1) / totalImages) * Math.PI * 2;
+    const panel = new THREE.Mesh(
+      new THREE.PlaneGeometry(10, 14),
+      new THREE.MeshStandardMaterial({ map: texLoader.load(`./uploads/image-${i}.jpg`), side: THREE.DoubleSide })
+    );
+    panel.position.set(Math.cos(angle) * 32, 0, Math.sin(angle) * 32);
+    panel.lookAt(0, 0, 0);
+    galleryGroup.add(panel);
+  }
+
+  function updatePositions(targets) {
+    let count = 0;
+    [sphereMesh, cubeMesh].forEach(mesh => {
+      for (let i = 0; i < mesh.count; i++) {
+        gsap.to(dummy.position, {
+          x: targets[count].x,
+          y: targets[count].y,
+          z: targets[count].z,
+          duration: 2.5,
+          ease: "expo.inOut",
+          delay: Math.random() * 0.4,
+          onUpdate: () => {
+            dummy.updateMatrix();
+            mesh.setMatrixAt(i, dummy.matrix);
+            mesh.instanceMatrix.needsUpdate = true;
+          }
+        });
+        count++;
+      }
+    });
+  }
+
+  // Double click explode / restore
+  window.addEventListener('dblclick', () => {
+    if (inVisionBoard) return;
+
+    isExploded = !isExploded;
+
+    if (!isExploded) {
+      galleryGroup.visible = portalGroup.visible = false;
+      controls.autoRotate = true;
+      updatePositions(figurePos);
+      gsap.to(camera.position, { x: 0, y: 5, z: 50, duration: 2 });
+    } else {
+      updatePositions(spherePos);
+      controls.autoRotate = false;
+      gsap.to(camera.position, { x: 0, y: 30, z: 80, duration: 2.5, ease: "power2.inOut" });
+      gsap.delayedCall(1.2, () => {
+        galleryGroup.visible = portalGroup.visible = true;
+        portalGroup.children.forEach(c => { if (c.userData.speed) c.visible = true; });
+      });
+    }
+  });
+
+  // Clickable portal
+  const raycaster = new THREE.Raycaster();
+  const mouse = new THREE.Vector2();
+
+  function onPointerDown(e){
+    if (inVisionBoard) return;
+    if (!portalGroup.visible) return;
+
+    const rect = renderer.domElement.getBoundingClientRect();
+    mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+    mouse.y = -(((e.clientY - rect.top) / rect.height) * 2 - 1);
+
+    raycaster.setFromCamera(mouse, camera);
+    const hits = raycaster.intersectObjects([portalFloor, ring], true);
+    if (hits.length > 0) goToVisionBoard();
+  }
+  renderer.domElement.addEventListener('pointerdown', onPointerDown);
+
+  function goToVisionBoard(){
+    inVisionBoard = true;
+    gsap.to(ring.material, { emissiveIntensity: 9, duration: 0.25, yoyo: true, repeat: 1 });
+
+    fadeEl.classList.add('on');
+    setTimeout(() => {
+      renderer.domElement.style.display = 'none';
+      visionEl.classList.add('show');
+      fadeEl.classList.remove('on');
+    }, 650);
+  }
+
+  function backToScene(){
+    fadeEl.classList.add('on');
+    setTimeout(() => {
+      visionEl.classList.remove('show');
+      renderer.domElement.style.display = 'block';
+      fadeEl.classList.remove('on');
+      inVisionBoard = false;
+    }, 650);
+  }
+
+  backBtn.addEventListener('click', backToScene);
+  printBtn.addEventListener('click', () => window.print());
+
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && inVisionBoard) backToScene();
+  });
+
+  function animate(time) {
+    requestAnimationFrame(animate);
+
+    const pulse = (Math.sin(time * 0.005) + 1) * 0.5;
+    glowMat.emissiveIntensity = 0.5 + pulse * 2.0;
+
+    portalGroup.children.forEach(q => {
+      if (q.userData.speed && q.visible) {
+        const angle = time * 0.0005 * q.userData.speed + q.userData.offset;
+        q.position.x = Math.cos(angle) * q.userData.radius;
+        q.position.z = Math.sin(angle) * q.userData.radius;
+        q.position.y = 5 + Math.sin(time * 0.002 + q.userData.offset) * 2;
+        q.lookAt(camera.position);
+      }
+    });
+
+    controls.update();
+    renderer.render(scene, camera);
+  }
+  animate(0);
+
+  window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+</script>
+
+</body>
+</html>

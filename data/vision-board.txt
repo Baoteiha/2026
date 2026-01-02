@@ -1,0 +1,26 @@
+{
+  "version": 1,
+  "updatedAt": "2026-01-02T10:25:50.133Z",
+  "sections": {
+    "subtitle": "Click the text to edit. Upload images in Mood & Aesthetic.",
+    "intentions": [
+      "Hello",
+      "Build momentum with small daily wins."
+    ],
+    "quote": "Warm heart, clear mind, steady steps.",
+    "quoteSub": "My energy for 2026",
+    "habits": [
+      "30 minutes deep work before scrolling.",
+      "Move my body (walk, swim, stretch)."
+    ],
+    "goals": [
+      "One project shipped that I truly care about."
+    ],
+    "people": [
+      "Make space for friendships that feel easy."
+    ]
+  },
+  "moodImages": [
+    "mood_20260102102547_4811.jpg"
+  ]
+}
